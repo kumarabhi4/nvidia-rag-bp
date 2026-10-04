@@ -1,0 +1,247 @@
+apiVersion: nvidia.com/v1
+kind: ClusterPolicy
+metadata:
+  annotations:
+    meta.helm.sh/release-name: gpu-operator
+    meta.helm.sh/release-namespace: gpu-operator
+  creationTimestamp: "2026-09-10T12:34:20Z"
+  generation: 6
+  labels:
+    app.kubernetes.io/component: gpu-operator
+    app.kubernetes.io/instance: gpu-operator
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: gpu-operator
+    app.kubernetes.io/version: v26.3.2
+    helm.sh/chart: gpu-operator-v26.3.2
+  name: cluster-policy
+  resourceVersion: "30145386"
+  uid: 2cef3e74-3630-44bb-85a1-fd85e364c4e2
+spec:
+  ccManager:
+    defaultMode: "on"
+    enabled: true
+    image: k8s-cc-manager
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/cloud-native
+    version: v0.4.0
+  cdi:
+    default: false
+    enabled: true
+    nriPluginEnabled: false
+  daemonsets:
+    labels:
+      app.kubernetes.io/managed-by: gpu-operator
+      helm.sh/chart: gpu-operator-v26.3.2
+    priorityClassName: system-node-critical
+    rollingUpdate:
+      maxUnavailable: "1"
+    tolerations:
+    - effect: NoSchedule
+      key: nvidia.com/gpu
+      operator: Exists
+    updateStrategy: RollingUpdate
+  dcgm:
+    enabled: false
+    image: dcgm
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/cloud-native
+    version: 4.5.2-1-ubuntu22.04
+  dcgmExporter:
+    enabled: true
+    image: dcgm-exporter
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/k8s
+    service:
+      internalTrafficPolicy: Cluster
+    serviceMonitor:
+      additionalLabels: {}
+      enabled: false
+      honorLabels: false
+      interval: 15s
+      relabelings: []
+    version: 4.5.3-4.8.2-distroless
+  devicePlugin:
+    config:
+      default: h100-3x
+      name: time-slicing-config
+    enabled: true
+    image: k8s-device-plugin
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia
+    version: v0.19.2
+  driver:
+    certConfig:
+      name: ""
+    enabled: true
+    image: driver
+    imagePullPolicy: IfNotPresent
+    kernelModuleConfig:
+      name: ""
+    kernelModuleType: auto
+    licensingConfig:
+      nlsEnabled: true
+      secretName: ""
+    manager:
+      image: k8s-driver-manager
+      imagePullPolicy: IfNotPresent
+      repository: nvcr.io/nvidia/cloud-native
+      version: v0.11.0
+    rdma:
+      enabled: false
+      useHostMofed: false
+    repoConfig:
+      configMapName: ""
+    repository: nvcr.io/nvidia
+    startupProbe:
+      failureThreshold: 120
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 60
+    upgradePolicy:
+      autoUpgrade: true
+      drain:
+        deleteEmptyDir: false
+        enable: false
+        force: false
+        timeoutSeconds: 300
+      maxParallelUpgrades: 1
+      maxUnavailable: 25%
+      podDeletion:
+        deleteEmptyDir: false
+        force: false
+        timeoutSeconds: 300
+      waitForCompletion:
+        timeoutSeconds: 0
+    useNvidiaDriverCRD: false
+    usePrecompiled: false
+    version: 580.126.20
+    virtualTopology:
+      config: ""
+  gdrcopy:
+    enabled: false
+    image: gdrdrv
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/cloud-native
+    version: v2.5.2
+  gds:
+    enabled: false
+    image: nvidia-fs
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/cloud-native
+    version: 2.27.3
+  gfd:
+    enabled: true
+    image: k8s-device-plugin
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia
+    version: v0.19.2
+  hostPaths:
+    driverInstallDir: /run/nvidia/driver
+    rootFS: /
+  kataManager:
+    enabled: false
+    imagePullPolicy: IfNotPresent
+  kataSandboxDevicePlugin:
+    enabled: true
+    image: nvidia-sandbox-device-plugin
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/cloud-native
+    version: v0.0.3
+  mig:
+    strategy: mixed
+  migManager:
+    config:
+      default: all-disabled
+    enabled: true
+    gpuClientsConfig:
+      name: ""
+    image: k8s-mig-manager
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/cloud-native
+    version: v0.14.2
+  nodeStatusExporter:
+    enabled: false
+    image: gpu-operator
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia
+    version: v26.3.2
+  operator:
+    runtimeClass: nvidia
+  psa:
+    enabled: false
+  sandboxDevicePlugin:
+    enabled: true
+    image: kubevirt-gpu-device-plugin
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia
+    version: v1.5.0
+  sandboxWorkloads:
+    defaultWorkload: container
+    enabled: false
+    mode: kubevirt
+  toolkit:
+    enabled: true
+    env:
+    - name: CONTAINERD_SOCKET
+      value: /run/k3s/containerd/containerd.sock
+    - name: CONTAINERD_RUNTIME_CLASS
+      value: nvidia
+    - name: CONTAINERD_SET_AS_DEFAULT
+      value: "false"
+    image: container-toolkit
+    imagePullPolicy: IfNotPresent
+    installDir: /usr/local/nvidia
+    repository: nvcr.io/nvidia/k8s
+    version: v1.19.1
+  validator:
+    image: gpu-operator
+    imagePullPolicy: IfNotPresent
+    plugin:
+      env: []
+    repository: nvcr.io/nvidia
+    version: v26.3.2
+  vfioManager:
+    driverManager:
+      image: k8s-driver-manager
+      imagePullPolicy: IfNotPresent
+      repository: nvcr.io/nvidia/cloud-native
+      version: v0.11.0
+    enabled: true
+    image: k8s-driver-manager
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/cloud-native
+    version: v0.11.0
+  vgpuDeviceManager:
+    config:
+      default: default
+      name: ""
+    enabled: true
+    image: vgpu-device-manager
+    imagePullPolicy: IfNotPresent
+    repository: nvcr.io/nvidia/cloud-native
+    version: v0.4.2
+  vgpuManager:
+    driverManager:
+      image: k8s-driver-manager
+      imagePullPolicy: IfNotPresent
+      repository: nvcr.io/nvidia/cloud-native
+      version: v0.11.0
+    enabled: false
+    image: vgpu-manager
+    imagePullPolicy: IfNotPresent
+    kernelModuleConfig:
+      name: ""
+status:
+  conditions:
+  - lastTransitionTime: "2026-09-26T11:10:52Z"
+    message: ClusterPolicy is ready as all resources have been successfully reconciled
+    reason: Reconciled
+    status: "True"
+    type: Ready
+  - lastTransitionTime: "2026-09-26T11:10:52Z"
+    message: ""
+    reason: Ready
+    status: "False"
+    type: Error
+  namespace: gpu-operator
+  state: ready

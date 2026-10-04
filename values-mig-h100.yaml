@@ -1,0 +1,138 @@
+# MIG-optimized resource configuration for RAG Blueprint on NVIDIA H100 80GB.
+# Pairs with mig-config-h100.yaml (profile: custom-h100-5gpu-llm2full-embed1full).
+#
+# GPU layout (5×H100 node):
+#   GPU 0,1 — MIG disabled, full devices  → nim-llm (nemotron-3-super-120b-a12b, vLLM tp=2)
+#   GPU 2   — 1× 3g.40gb + 4× 1g.10gb     → OCR + (graphic, page, table, spare)
+#   GPU 3   — MIG disabled, full device   → embedding-VLM
+#   GPU 4   — 1× 3g.40gb + 2× 1g.20gb     → rerank (+ spare 3g.40gb and 1g.20gb)
+#
+# Requires GPU Operator mig-strategy=mixed so the node advertises both
+# nvidia.com/gpu and nvidia.com/mig-* resources simultaneously.
+
+# Ingestor Server — reduce concurrency for MIG
+ingestor-server:
+  envVars:
+    NV_INGEST_FILES_PER_BATCH: "4"
+    NV_INGEST_CONCURRENT_BATCHES: "1"
+
+# NV-Ingest configuration
+nv-ingest:
+  envVars:
+    NV_INGEST_MAX_UTIL: 8
+    MAX_INGEST_PROCESS_WORKERS: 2
+
+  # NV-Ingest NIM Operator overrides
+  nimOperator:
+    # OCR — uses 3g.40gb on GPU 2
+    ocr:
+      resources:
+        limits:
+          nvidia.com/gpu: "0"
+          nvidia.com/mig-3g.47gb: 1
+        requests:
+          nvidia.com/gpu: "0"
+          nvidia.com/mig-3g.47gb: 1
+      storage:
+        pvc:
+          storageClass: ""
+
+    # Graphic Elements — uses 1g.10gb on GPU 2
+    graphic_elements:
+      resources:
+        limits:
+          nvidia.com/gpu: "0"
+          nvidia.com/mig-1g.24gb: 1
+        requests:
+          nvidia.com/gpu: "0"
+          nvidia.com/mig-1g.24gb: 1
+      storage:
+        pvc:
+          storageClass: ""
+
+    # Page Elements — uses 1g.10gb on GPU 2
+    page_elements:
+      resources:
+        limits:
+          nvidia.com/gpu: "0"
+          nvidia.com/mig-1g.24gb: 1
+        requests:
+          nvidia.com/gpu: "0"
+          nvidia.com/mig-1g.24gb: 1
+      storage:
+        pvc:
+          storageClass: ""
+
+    # Table Structure — uses 1g.10gb on GPU 2
+    table_structure:
+      resources:
+        limits:
+          nvidia.com/gpu: "0"
+          nvidia.com/mig-1g.24gb: 1
+        requests:
+          nvidia.com/gpu: "0"
+          nvidia.com/mig-1g.24gb: 1
+      storage:
+        pvc:
+          storageClass: ""
+
+# Main NIM Operator overrides for MIG
+nimOperator:
+  # LLM — 2 FULL H100 GPUs (no MIG).
+  # nemotron-3-super-120b-a12b runs with vLLM and tensorParallelism=2,
+  # which requires two physical GPUs with NVLink for NCCL collectives.
+  nim-llm:
+    image:
+      tag: "2.0.9"
+    env:
+      - name: NIM_HTTP_API_PORT
+        value: "8000"
+      - name: NIM_TRITON_LOG_VERBOSE
+        value: "1"
+      - name: NIM_SERVED_MODEL_NAME
+        value: "nvidia/nemotron-3-super-120b-a12b"
+      - name: NIM_ENABLE_CHUNKED_PREFILL
+        value: "1"
+      - name: NCCL_NVLS_ENABLE
+        value: "0"
+      - name: VLLM_USE_FLASHINFER_MOE_FP8
+        value: "0"
+      - name: NIM_PASSTHROUGH_ARGS
+        value: "--max-num-seqs 384"
+    resources:
+      limits:
+        nvidia.com/gpu: 2
+      requests:
+        nvidia.com/gpu: 2
+    storage:
+      pvc:
+        storageClass: ""
+
+  # VLM Embedding (default) — 1 FULL H100 GPU (no MIG) on GPU 3.
+  # Promoted to a full device so the vision tower has unrestricted compute
+  # and memory bandwidth, improving end-to-end embedding throughput.
+  nvidia-nim-llama-nemotron-embed-vl-1b-v2:
+    resources:
+      limits:
+        nvidia.com/gpu: "0"
+        nvidia.com/mig-3g.47gb: 1
+      requests:
+        nvidia.com/gpu: "0"
+        nvidia.com/mig-3g.47gb: 1
+    storage:
+      pvc:
+        storageClass: ""
+    
+  # Nemotron Reranking — 1g.24gb MIG
+  nvidia-nim-llama-nemotron-rerank-1b-v2:
+    resources:
+      limits:
+        nvidia.com/gpu: "0"
+        nvidia.com/mig-1g.24gb: 1
+      requests:
+        nvidia.com/gpu: "0"
+        nvidia.com/mig-1g.24gb: 1
+    storage:
+      pvc:
+        storageClass: ""
+

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-mig-config
+data:
+  config.yaml: |
+    version: v1
+    mig-configs:
+      all-disabled:
+        - devices: all
+          mig-enabled: false
+
+      custom-h100-rag-consolidated:
+        - devices: [0, 1]
+          mig-enabled: false
+        - devices: [2]
+          mig-enabled: true
+          mig-devices:
+            "3g.47gb": 1
+            "2g.24gb": 1
+            "1g.24gb": 1
+        - devices: [3]
+          mig-enabled: false
