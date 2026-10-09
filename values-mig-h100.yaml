@@ -29,10 +29,10 @@ nv-ingest:
       resources:
         limits:
           nvidia.com/gpu: "0"
-          nvidia.com/mig-3g.47gb: 1
+          nvidia.com/mig-2g.24gb: 1
         requests:
           nvidia.com/gpu: "0"
-          nvidia.com/mig-3g.47gb: 1
+          nvidia.com/mig-2g.24gb: 1
       storage:
         pvc:
           storageClass: ""
@@ -98,7 +98,7 @@ nimOperator:
       - name: VLLM_USE_FLASHINFER_MOE_FP8
         value: "0"
       - name: NIM_PASSTHROUGH_ARGS
-        value: "--max-num-seqs 384"
+        value: "--max-num-seqs 384 --compilation-config '{\"pass_config\":{\"fuse_allreduce_rms\":false}}'"
     resources:
       limits:
         nvidia.com/gpu: 2
@@ -114,11 +114,9 @@ nimOperator:
   nvidia-nim-llama-nemotron-embed-vl-1b-v2:
     resources:
       limits:
-        nvidia.com/gpu: "0"
-        nvidia.com/mig-3g.47gb: 1
+        nvidia.com/gpu: 1
       requests:
-        nvidia.com/gpu: "0"
-        nvidia.com/mig-3g.47gb: 1
+        nvidia.com/gpu: 1
     storage:
       pvc:
         storageClass: ""
@@ -128,10 +126,10 @@ nimOperator:
     resources:
       limits:
         nvidia.com/gpu: "0"
-        nvidia.com/mig-1g.24gb: 1
+        nvidia.com/mig-3g.47gb: 1
       requests:
         nvidia.com/gpu: "0"
-        nvidia.com/mig-1g.24gb: 1
+        nvidia.com/mig-3g.47gb: 1
     storage:
       pvc:
         storageClass: ""
